@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Nightscout Glucose Summary</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    canvas {
+      max-width: 800px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Glucose Chart</h1>
+  <canvas id="glucoseChart" width="800" height="400"></canvas>
+
+  <script>
+    const NIGHTSCOUT_URL = "https://nightscout-proxy-1029015683854.europe-west4.run.app/entries";
+
+    async function loadData() {
+      const response = await fetch(NIGHTSCOUT_URL);
+      const data = await response.json();
+
+      // Get the last 100 entries (or modify this logic to filter by date)
+      const recent = data.slice(-100);
+
+      const labels = recent.map(entry => new Date(entry.date).toLocaleTimeString());
+      const values = recent.map(entry => entry.sgv);
+
+      const ctx = document.getElementById('glucoseChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Glucose (mg/dL)',
+            data: values,
+            fill: false,
+            borderColor: 'blue',
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              suggestedMin: 50,
+              suggestedMax: 250
+            }
+          }
+        }
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
