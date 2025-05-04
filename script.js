@@ -2,7 +2,7 @@ const oneWeekAgo = new Date();
 oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 const isoDate = oneWeekAgo.toISOString();
 
-const proxyUrl = `https://nightscout-proxy-1029015683854.europe-west4.run.app/entries?find[dateString][$gte]=${isoDate}`;
+const proxyUrl = `https://nightscout-proxy-1029015683854.europe-west4.run.app/entries`;
 
 // Fetch data and process
 fetch(proxyUrl)
