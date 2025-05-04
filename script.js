@@ -1,4 +1,8 @@
-const proxyUrl = "https://nightscout-proxy-1029015683854.europe-west4.run.app/entries";
+const oneWeekAgo = new Date();
+oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+const isoDate = oneWeekAgo.toISOString();
+
+const proxyUrl = `https://nightscout-proxy-1029015683854.europe-west4.run.app/entries?find[dateString][$gte]=${isoDate}`;
 
 // Fetch data and process
 fetch(proxyUrl)
@@ -18,7 +22,9 @@ function groupByDay(entries) {
   cutoff.setDate(cutoff.getDate() - 7); // last 7 days
 
   entries.forEach(entry => {
+    if (!entry.dateString) return; // skip if no timestamp
     const date = new Date(entry.dateString);
+    if (isNaN(date)) return; // skip if invalid date
     if (date < cutoff) return;
     const day = date.toISOString().split("T")[0]; // 'YYYY-MM-DD'
     if (!byDay[day]) byDay[day] = [];
