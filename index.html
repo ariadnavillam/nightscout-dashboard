@@ -1,63 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Nightscout Glucose Summary</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Glucose Time In Range Dashboard</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 2rem;
-    }
-    canvas {
-      max-width: 800px;
-      margin: auto;
-    }
-  </style>
 </head>
 <body>
-  <h1>Glucose Chart</h1>
-  <canvas id="glucoseChart" width="800" height="400"></canvas>
-
-  <script>
-    const NIGHTSCOUT_URL = "https://nightscout-proxy-1029015683854.europe-west4.run.app/entries";
-
-    async function loadData() {
-      const response = await fetch(NIGHTSCOUT_URL);
-      const data = await response.json();
-
-      // Get the last 100 entries (or modify this logic to filter by date)
-      const recent = data.slice(-100);
-
-      const labels = recent.map(entry => new Date(entry.date).toLocaleTimeString());
-      const values = recent.map(entry => entry.sgv);
-
-      const ctx = document.getElementById('glucoseChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Glucose (mg/dL)',
-            data: values,
-            fill: false,
-            borderColor: 'blue',
-            tension: 0.1
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              suggestedMin: 50,
-              suggestedMax: 250
-            }
-          }
-        }
-      });
-    }
-
-    loadData();
-  </script>
+  <div class="container">
+    <h1>Time In Range (80–180 mg/dL)</h1>
+    <canvas id="tirChart"></canvas>
+    <p class="note">✅ = Above 70% in range</p>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
