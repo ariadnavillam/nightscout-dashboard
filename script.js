@@ -22,17 +22,23 @@ function groupByDay(entries) {
   cutoff.setDate(cutoff.getDate() - 7); // last 7 days
 
   entries.forEach(entry => {
-    if (!entry.dateString) return; // skip if no timestamp
+    if (!entry.dateString || typeof entry.dateString !== 'string') return;
+
     const date = new Date(entry.dateString);
-    if (isNaN(date)) return; // skip if invalid date
-    if (date < cutoff) return;
+    if (isNaN(date.getTime())) return; // skip if invalid date
+
+    if (date < cutoff) return; // skip if older than 7 days
+
     const day = date.toISOString().split("T")[0]; // 'YYYY-MM-DD'
     if (!byDay[day]) byDay[day] = [];
-    byDay[day].push(entry.sgv);
+    if (typeof entry.sgv === 'number') {
+      byDay[day].push(entry.sgv); // only include valid numbers
+    }
   });
 
   return byDay;
 }
+
 
 // Calculate percentage in range
 function prepareChartData(grouped) {
