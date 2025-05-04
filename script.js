@@ -39,7 +39,6 @@ function groupByDay(entries) {
   return byDay;
 }
 
-
 // Calculate percentage in range
 function prepareChartData(grouped) {
   const labels = [];
@@ -58,7 +57,7 @@ function prepareChartData(grouped) {
   return { labels, data, ticks };
 }
 
-// Render Chart.js bar chart
+// Render Chart.js horizontal bar chart
 function renderChart({ labels, data, ticks }) {
   new Chart(document.getElementById('tirChart').getContext('2d'), {
     type: 'bar',
@@ -71,6 +70,7 @@ function renderChart({ labels, data, ticks }) {
       }]
     },
     options: {
+      indexAxis: 'y', // Switch to horizontal bars
       responsive: true,
       plugins: {
         tooltip: {
@@ -81,10 +81,14 @@ function renderChart({ labels, data, ticks }) {
         legend: { display: false }
       },
       scales: {
-        y: {
+        x: {
           beginAtZero: true,
           max: 100,
-          title: { display: true, text: 'Percentage (%)' }
+          title: { display: true, text: 'Percentage (%)' },
+          grid: { display: false } // Remove grid lines
+        },
+        y: {
+          grid: { display: false } // Remove grid lines
         }
       }
     }
