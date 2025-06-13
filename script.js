@@ -53,48 +53,63 @@ function getLast7Days() {
   return days;
 }
 
-// Group entries by date
+// Group every entry (timestamp + sgv) by day
 function groupByDay(entries) {
   const byDay = {};
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setDate(cutoff.getDate() - 7); // last 7 days
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 7);   // keep only the last 7 × 24 h
 
   entries.forEach(entry => {
     if (!entry.dateString || typeof entry.dateString !== 'string') return;
+    if (typeof entry.sgv !== 'number') return;
 
-    const date = new Date(entry.dateString);
-    if (isNaN(date.getTime())) return; // skip if invalid date
+    const ts = new Date(entry.dateString);
+    if (isNaN(ts) || ts < cutoff) return;
 
-    if (date < cutoff) return; // skip if older than 7 days
-
-    const day = date.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+    const day = ts.toISOString().split('T')[0];            // “YYYY‑MM‑DD”
     if (!byDay[day]) byDay[day] = [];
-    if (typeof entry.sgv === 'number') {
-      byDay[day].push(entry.sgv); // only include valid numbers
-    }
+    byDay[day].push({ ts, sgv: entry.sgv });               // keep both ts & value
   });
+
+  // sort each day’s readings chronologically (needed for Δ‑minutes calc)
+  Object.values(byDay).forEach(arr =>
+    arr.sort((a, b) => a.ts - b.ts)
+  );
 
   return byDay;
 }
 
-// Calculate percentage in range for last 7 days, fill missing with 0
+// Calculate %‑time‑in‑range (80‑180 mg/dL) using minutes‑weighting
 function prepareChartData(grouped) {
   const labels = [];
-  const data = [];
-  const ticks = [];
-  const last7Days = getLast7Days();
+  const data   = [];
+  const ticks  = [];
+  const last7  = getLast7Days();
 
-  last7Days.forEach(day => {
+  last7.forEach(day => {
     const readings = grouped[day] || [];
-    let pct = 0;
-    if (readings.length > 0) {
-      const inRange = readings.filter(v => v >= 80 && v <= 180).length;
-      pct = Math.round((inRange / readings.length) * 100);
-    }
+
+    // ----- time‑in‑range calculation -----
+    let inRangeMin = 0;
+    let dayEnd     = new Date(`${day}T23:59:59Z`).getTime();
+    const DAY_MIN  = 1440;
+
+    readings.forEach((cur, idx) => {
+      const curTime  = cur.ts.getTime();
+      const nextTime = (idx < readings.length - 1)
+        ? readings[idx + 1].ts.getTime()
+        : dayEnd;
+
+      const deltaMin = (nextTime - curTime) / 60000;        // ms → minutes
+      if (cur.sgv >= 80 && cur.sgv <= 180) inRangeMin += deltaMin;
+    });
+
+    const pct = Math.round((inRangeMin / DAY_MIN) * 100);   // normalise by 1 day
+    // -------------------------------------
+
     labels.push(day);
     data.push(pct);
-    ticks.push(pct >= 70 ? "✅" : "");
+    ticks.push(pct >= 70 ? '✅' : '');
   });
 
   return { labels, data, ticks };
