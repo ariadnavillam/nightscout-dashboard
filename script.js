@@ -14,6 +14,18 @@ fetch(proxyUrl)
   })
   .catch(err => console.error("Error fetching data:", err));
 
+// Helper: get array of last 7 days as YYYY-MM-DD
+function getLast7Days() {
+  const days = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(d.toISOString().split("T")[0]);
+  }
+  return days;
+}
+
 // Group entries by date
 function groupByDay(entries) {
   const byDay = {};
@@ -39,16 +51,20 @@ function groupByDay(entries) {
   return byDay;
 }
 
-// Calculate percentage in range
+// Calculate percentage in range for last 7 days, fill missing with 0
 function prepareChartData(grouped) {
   const labels = [];
   const data = [];
   const ticks = [];
+  const last7Days = getLast7Days();
 
-  Object.keys(grouped).sort().forEach(day => {
-    const readings = grouped[day];
-    const inRange = readings.filter(v => v >= 80 && v <= 180).length;
-    const pct = Math.round((inRange / readings.length) * 100);
+  last7Days.forEach(day => {
+    const readings = grouped[day] || [];
+    let pct = 0;
+    if (readings.length > 0) {
+      const inRange = readings.filter(v => v >= 80 && v <= 180).length;
+      pct = Math.round((inRange / readings.length) * 100);
+    }
     labels.push(day);
     data.push(pct);
     ticks.push(pct >= 70 ? "✅" : "");
