@@ -11,6 +11,33 @@ fetch(proxyUrl)
     const grouped = groupByDay(data);
     const chartData = prepareChartData(grouped);
     renderChart(chartData);
+
+    // --- Added code for glucoseChart ---
+    const ctx = document.getElementById('glucoseChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // Important: allows the height to grow
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: '% Time in Range'
+            }
+          }
+        }
+      }
+    });
+    // --- End added code ---
   })
   .catch(err => console.error("Error fetching data:", err));
 
@@ -109,4 +136,5 @@ function renderChart({ labels, data, ticks }) {
       }
     }
   });
+  
 }
